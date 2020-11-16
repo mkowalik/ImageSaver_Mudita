@@ -40,7 +40,7 @@ public:
         std::string         getMessage();
     };
 
-    ICCommunication(Role role, std::string FIFO_REQUEST_NAME = "FIFO_REQUEST_NAME", std::string FIFO_RESPONSE_NAME = "FIFO_RESPONSE_NAME");
+    ICCommunication(Role role, std::string FIFO_REQUEST_NAME = "FIFO_REQUEST_NAME", std::string FIFO_RESPONSE_NAME = "FIFO_RESPONSE_NAME", std::string DIR_PATH = "../");
 
     Response    sendRequest(Request request);
 

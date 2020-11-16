@@ -67,9 +67,10 @@ std::vector<char> ICCommunication::Response::writeToBuffer()
     return ret;
 }
 
-ICCommunication::ICCommunication(Role _role, std::string FIFO_REQUEST_NAME, std::string FIFO_RESPONSE_NAME) : role(_role), fifoRequestName(FIFO_REQUEST_NAME), fifoResponseName(FIFO_RESPONSE_NAME) 
+ICCommunication::ICCommunication(Role _role, std::string FIFO_REQUEST_NAME, std::string FIFO_RESPONSE_NAME, std::string DIR_PATH) : role(_role), fifoRequestName(FIFO_REQUEST_NAME), fifoResponseName(FIFO_RESPONSE_NAME)
 {
-
+    FIFO_REQUEST_NAME.insert(0, DIR_PATH);
+    FIFO_RESPONSE_NAME.insert(0, DIR_PATH);
     mkfifo(FIFO_REQUEST_NAME.c_str(), 0666);
     mkfifo(FIFO_RESPONSE_NAME.c_str(), 0666);
 
