@@ -3,6 +3,8 @@
 #include <memory>
 #include <ostream>
 
+#include "image.h"
+
 class Image;
 
 class Command {

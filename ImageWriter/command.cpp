@@ -6,17 +6,16 @@ SetWidthCommand::SetWidthCommand(unsigned int _width) : width(_width)
 
 bool SetWidthCommand::executeCommand(Image& img) 
 {
-
+    img.setWidth(width);
 }
 
 SetHeightCommand::SetHeightCommand(unsigned int _height) : height(_height)
 {
-
 }
 
 bool SetHeightCommand::executeCommand(Image& img)
 {
-
+    img.setHeight(height);
 }
 
 DrawRectangleCommand::DrawRectangleCommand(unsigned int _x, unsigned int _y, unsigned int _width, unsigned int _height) : 
@@ -26,7 +25,10 @@ DrawRectangleCommand::DrawRectangleCommand(unsigned int _x, unsigned int _y, uns
 
 bool DrawRectangleCommand::executeCommand(Image& img)
 {
-    
+    img.drawLine(x, y, x+width, y);
+    img.drawLine(x, y, x, y+height);
+    img.drawLine(x, y+height, x+width, y+height);
+    img.drawLine(x+width, y, x+width, y+height);
 }
 
 DrawTriangleCommand::DrawTriangleCommand(unsigned int _x1,
@@ -42,15 +44,16 @@ DrawTriangleCommand::DrawTriangleCommand(unsigned int _x1,
 
 bool DrawTriangleCommand::executeCommand(Image& img)
 {
-
+    img.drawLine(x1, y1, x2, y2);
+    img.drawLine(x2, y2, x3, y3);
+    img.drawLine(x3, y3, x1, y1);
 }
 
 RenderNameCommand::RenderNameCommand(std::string&& _name) : name(_name)
 {
-
 }
 
 bool RenderNameCommand::executeCommand(Image& img)
 {
-
+    img.saveImage(name);
 }
