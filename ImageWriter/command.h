@@ -5,8 +5,6 @@
 
 #include "image.h"
 
-class Image;
-
 class Command {
 public:
     //< Return information if it is finish (RENDER) command end executes it >//

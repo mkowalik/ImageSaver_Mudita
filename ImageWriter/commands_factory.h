@@ -8,8 +8,9 @@
 
 class CommandsFactory {
 private:
-    std::vector<std::string> splitToWords(std::string);
-    int stringToInt(std::string str);
+    std::vector<std::string> splitToWords(const std::string&, char splitChar);
+    int stringToInt(const std::string& str);
+    void trimWhitespaces(std::string& str);
 public:
-    std::unique_ptr<Command> getCommandFromString(std::string command);
+    std::unique_ptr<Command> getCommandFromString(const std::string& command);
 };

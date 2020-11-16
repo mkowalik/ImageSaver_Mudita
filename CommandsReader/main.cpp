@@ -3,30 +3,42 @@
 #include <fstream>
 #include <memory>
 
-#include "../common/icCommunication.h"
+#include <sys/wait.h>
+#include <unistd.h>
+
+#include "../common/ip_communication.h"
 
 
 int main(int argc, char* argv[]){
 
+    pid_t pid = fork(); //create child process
+
+    if (pid == -1){ //error
+        
+    } else if (pid == 0){ //child process
+        execl("./ImageWriter/ImageWriter.out", "");
+        //if returned there is an error
+    }
+    //< parent process below >//
     std::ifstream fil;
     if (argc > 1){
         fil = std::ifstream(argv[1]);
     }
     std::istream& str = (argc > 1) ? fil : std::cin;
 
-    // std::system("firefox"); //< runs another app
-
-    ICCommunication icCom(ICCommunication::Role::CommandsReader);
+    IPCommunication icCom(IPCommunication::Role::CommandsReader);
 
     std::string command;
     while (true){
-        str >> command;
-        ICCommunication::Response resp = icCom.sendRequest(ICCommunication::Request(command));
-        if (resp.getType() == ICCommunication::Response::ResponseType::ERROR){
+        std::getline(str, command);
+        IPCommunication::Response resp = icCom.sendRequest(IPCommunication::Request(command));
+        if (resp.getType() == IPCommunication::Response::ResponseType::ERROR){
             std::cout << "ERROR: " << resp.getMessage() << std::endl;
-        } else if (resp.getType() == ICCommunication::Response::ResponseType::FINISH){
+        } else if (resp.getType() == IPCommunication::Response::ResponseType::FINISH){
             std::cout << "Image saved!" << std::endl;
         }
     }
+    int status;
+    waitpid(pid, &status, 0);
     return 0;
 }

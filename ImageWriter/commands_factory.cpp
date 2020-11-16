@@ -1,21 +1,27 @@
 #include "commands_factory.h"
+#include <iostream>
+#include <cctype>
+#include <algorithm>
 
-std::unique_ptr<Command> CommandsFactory::getCommandFromString(std::string command){
-    std::vector<std::string> commandSplitted = splitToWords(command);
-    if (commandSplitted[0].compare("SET_WIDTH")){
+std::unique_ptr<Command> CommandsFactory::getCommandFromString(const std::string& command){
+    std::vector<std::string> commandSplitted = splitToWords(command, ' ');
+    std::cout << "splitted" << std::endl;
+    if (commandSplitted[0].compare("SET_WIDTH") == 0){
         if (commandSplitted.size() != 2){
             throw std::logic_error("Wrong arguments number for SET_WIDTH command.");
         }
         int width = stringToInt(commandSplitted[1]);
         return std::unique_ptr<SetWidthCommand>(new SetWidthCommand(width));
-    } else if (commandSplitted[0].compare("SET_HEIGHT")){
+    } else if (commandSplitted[0].compare("SET_HEIGHT") == 0){
         if (commandSplitted.size() != 2){
             throw std::logic_error("Wrong arguments number for SET_HEIGHT command.");
         }
         int width = stringToInt(commandSplitted[1]);
         return std::unique_ptr<SetHeightCommand>(new SetHeightCommand(width));
-    } else if (commandSplitted[0].compare("DRAW_RECTANGLE")){
-        if (commandSplitted.size() != 5){
+    } else if (commandSplitted[0].compare("DRAW_RECTANGLE") == 0){
+
+        commandSplitted = splitToWords(commandSplitted[1], ',');
+        if (commandSplitted.size() != 4){
             throw std::logic_error("Wrong arguments number for DRAW_RECTANGLE command.");
         }
         int x = stringToInt(commandSplitted[1]);
@@ -23,8 +29,9 @@ std::unique_ptr<Command> CommandsFactory::getCommandFromString(std::string comma
         int width = stringToInt(commandSplitted[3]);
         int height = stringToInt(commandSplitted[4]);
         return std::unique_ptr<DrawRectangleCommand>(new DrawRectangleCommand(x, y, width, height));
-    } else if (commandSplitted[0].compare("DRAW_TRIANGLE")){
-        if (commandSplitted.size() != 7){
+    } else if (commandSplitted[0].compare("DRAW_TRIANGLE") == 0){
+        commandSplitted = splitToWords(commandSplitted[1], ',');
+        if (commandSplitted.size() != 6){
             throw std::logic_error("Wrong arguments number for DRAW_TRIANGLE command.");
         }
         int x1 = stringToInt(commandSplitted[1]);
@@ -34,7 +41,7 @@ std::unique_ptr<Command> CommandsFactory::getCommandFromString(std::string comma
         int x3 = stringToInt(commandSplitted[5]);
         int y3 = stringToInt(commandSplitted[6]);
         return std::unique_ptr<DrawTriangleCommand>(new DrawTriangleCommand(x1, y1, x2, y2, x3, y3));
-    } else if (commandSplitted[0].compare("RENDER")){
+    } else if (commandSplitted[0].compare("RENDER") == 0){
         if (commandSplitted.size() != 2){
             throw std::logic_error("Wrong arguments number for RENDER command.");
         }
@@ -44,12 +51,13 @@ std::unique_ptr<Command> CommandsFactory::getCommandFromString(std::string comma
     }
 }
 
-std::vector<std::string> CommandsFactory::splitToWords(std::string command){
+std::vector<std::string> CommandsFactory::splitToWords(const std::string& command, char splitChar){
     std::vector<std::string> ret;
     std::string::size_type posL = 0;
     while (posL < command.length()){
-        std::string::size_type posR = command.find(' ', posL);
-        if (posR - posL == 1){
+        std::string::size_type posR = std::min(command.length(), command.find(splitChar, posL));
+        if (posR == posL){ //< found space next to another space
+            ++posL;
             continue;
         }
         ret.push_back(std::string(command, posL, posR - posL));
@@ -58,7 +66,7 @@ std::vector<std::string> CommandsFactory::splitToWords(std::string command){
     return ret;
 }
 
-int CommandsFactory::stringToInt(std::string str){
+int CommandsFactory::stringToInt(const std::string& str){
     try {
         return std::stoi(str);
     } catch (std::invalid_argument const& e){
@@ -67,3 +75,10 @@ int CommandsFactory::stringToInt(std::string str){
         throw std::logic_error("Wrong argument format - integer out_of_range.");
     }
 }
+
+void CommandsFactory::trimWhitespaces(std::string& str){   
+    str.erase(
+        std::remove_if(str.begin(), str.end(), ::isspace), 
+        str.end()
+    );
+}   

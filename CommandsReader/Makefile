@@ -1,7 +1,8 @@
-all: main.exe
+all: CommandsReader.out
 
-main.exe: main.cpp
-	g++ -g -std=c++17 ../common/icCommunication.o -o main.exe main.cpp
+CommandsReader.out: main.cpp ../common/ip_communication.o
+	make -C ../common all
+	g++ -g -O0 -Wall -std=c++17 ../common/ip_communication.o -o CommandsReader.out main.cpp
 
 clean:
-	rm *.o *.exe
+	rm -f *.o *.out

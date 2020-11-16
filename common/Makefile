@@ -1,13 +1,7 @@
-all: icCommunication.o test_client.out test_server.out
+all: ip_communication.o 
 
-test_client.out: icCommunication.o test_client.cpp
-	g++ -g -std=c++17 -Wall -o test_client.out icCommunication.o test_client.cpp 
-
-test_server.out: icCommunication.o test_server.cpp
-	g++ -g -std=c++17 -Wall -o test_server.out icCommunication.o test_server.cpp
-
-icCommunication.o: icCommunication.cpp icCommunication.h
-	g++ -g -std=c++17 -Wall -c -o icCommunication.o icCommunication.cpp
+ip_communication.o: ip_communication.cpp ip_communication.h
+	g++ -g -O0 -Wall -std=c++17 -c -o ip_communication.o ip_communication.cpp
 
 clean:
-	rm *.o *.out
+	rm -f *.o *.out
