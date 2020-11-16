@@ -1,3 +1,4 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #include <fstream>
 
 #include "log_saver.h"

@@ -1,3 +1,4 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #include "bmpimage.h"
 
 BMPImage::BMPImage() : img(defaultWidth, defaultHeight, 1, 3, 255) {

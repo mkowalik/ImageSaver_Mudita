@@ -1,3 +1,4 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #include "ip_communication.h"
 
 IPCommunication::Request::Request(const std::string& _command) : command(_command)

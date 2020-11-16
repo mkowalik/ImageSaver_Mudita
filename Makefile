@@ -1,3 +1,4 @@
+# Michal Kowalik <kowalik.michal1@gmail.com>
 all: 
 	(cd common; make all)
 	(cd ImageWriter; make all)

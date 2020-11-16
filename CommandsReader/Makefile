@@ -1,4 +1,5 @@
-all: commands_reader.out log_saver.o
+# Michal Kowalik <kowalik.michal1@gmail.com>
+all: commands_reader.out
 
 commands_reader.out: main.cpp log_saver.o commands_reader.o ../common/ip_communication.o ../common/ip_communication_fifo.o
 	make -C ../common all

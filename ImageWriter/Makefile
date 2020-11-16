@@ -1,3 +1,4 @@
+# Michal Kowalik <kowalik.michal1@gmail.com>
 all: image_writer.out
 
 image_writer.out: commands_factory.o command.o bmpimage.o ../common/ip_communication.o ../common/ip_communication_fifo.o main.cpp 

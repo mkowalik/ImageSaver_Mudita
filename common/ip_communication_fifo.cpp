@@ -1,3 +1,4 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #include "ip_communication_fifo.h"
 
 #include <sys/stat.h>

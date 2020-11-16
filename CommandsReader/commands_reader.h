@@ -1,3 +1,4 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #pragma once
 
 #include "../common/ip_communication.h"

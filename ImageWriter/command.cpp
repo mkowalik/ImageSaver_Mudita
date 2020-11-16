@@ -1,3 +1,4 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #include "command.h"
 
 SetWidthCommand::SetWidthCommand(unsigned int _width) : width(_width)

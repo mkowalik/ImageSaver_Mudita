@@ -1,3 +1,4 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #include <iostream>
 #include <cstdlib>
 #include <fstream>

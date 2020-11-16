@@ -1,4 +1,4 @@
-
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #include "../common/ip_communication_fifo.h"
 #include "commands_factory.h"
 #include "bmpimage.h"

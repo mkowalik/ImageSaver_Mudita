@@ -1,3 +1,4 @@
+# Michal Kowalik <kowalik.michal1@gmail.com>
 all: ip_communication.o ip_communication_fifo.o 
 
 ip_communication_fifo.o: ip_communication.o ip_communication_fifo.cpp ip_communication_fifo.h

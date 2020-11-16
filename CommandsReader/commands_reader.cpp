@@ -1,3 +1,5 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
+
 #include <iostream>
 
 #include "commands_reader.h"

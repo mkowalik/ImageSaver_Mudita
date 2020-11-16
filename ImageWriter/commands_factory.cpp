@@ -1,3 +1,4 @@
+// Michal Kowalik <kowalik.michal1@gmail.com>
 #include "commands_factory.h"
 #include <cctype>
 #include <algorithm>
