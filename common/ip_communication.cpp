@@ -77,27 +77,25 @@ IPCommunication::IPCommunication(Role _role,
 : 
 role(_role), fifoRequestName(DIR_PATH + FIFO_REQUEST_NAME), fifoResponseName(DIR_PATH + FIFO_RESPONSE_NAME)
 {
-    fifoRequestName.append("_" + std::to_string(getpid()));
-    fifoResponseName.append("_" + std::to_string(getpid()));
-    mkfifo(FIFO_REQUEST_NAME.c_str(), 0666);
-    mkfifo(FIFO_RESPONSE_NAME.c_str(), 0666);
+    mkfifo(fifoRequestName.c_str(), 0666);
 
     if (role == Role::CommandsReader){
-        fdRequest = open(FIFO_REQUEST_NAME.c_str(), O_WRONLY);
-        fdResponse = open(FIFO_RESPONSE_NAME.c_str(), O_RDONLY);
-/*
-        while ((readBytes = read(fdResponse, buffer, BUFFER_SIZE)) == BUFFER_SIZE){}
-        if (readBytes < 0){
-            throw std::runtime_error("IPCommunication: Error during inter-process communication initialisation.");
-        }*/
+        std::cout << "opne 1 Command before \r\n";
+        fdRequest = open(fifoRequestName.c_str(), O_WRONLY);
     } else {
-        fdRequest = open(FIFO_REQUEST_NAME.c_str(), O_RDONLY);
-        fdResponse = open(FIFO_RESPONSE_NAME.c_str(), O_WRONLY);
-        /*readBytes = read(fdRequest, buffer, BUFFER_SIZE);
-        while ((readBytes = read(fdRequest, buffer, BUFFER_SIZE)) == BUFFER_SIZE){}
-        if (readBytes < 0){
-            throw std::runtime_error("IPCommunication: Error during inter-process communication initialisation.");
-        }*/
+        std::cout << "opne 1 Image before \r\n";
+        fdRequest = open(fifoRequestName.c_str(), O_RDONLY);
+    }
+    mkfifo(fifoResponseName.c_str(), 0666);
+    if (role == Role::CommandsReader){
+        std::cout << "opne 1 Command done \r\n";
+        fdResponse = open(fifoResponseName.c_str(), O_RDONLY);
+    } else {
+        std::cout << "opne 1 Image done \r\n";
+        fdResponse = open(fifoResponseName.c_str(), O_WRONLY);
+    }
+    if (fdRequest <= 0 || fdResponse <= 0){
+        throw std::runtime_error("Could not create system FIFO.");
     }
 
     std::cout << fdRequest << " " << fdResponse << std::endl;
@@ -116,8 +114,8 @@ IPCommunication::Response IPCommunication::sendRequest(const Request& request)
     FD_SET(fdResponse, &set); /* add our file descriptor to the set */
 
     struct timeval timeoutValue = {
-        .tv_sec = 0,
-        .tv_usec = 200000 //200ms
+        .tv_sec = 5,
+        .tv_usec = 500000 //500ms
     };
 
     char readResponseBuffer[BUFFER_SIZE];
@@ -130,6 +128,9 @@ IPCommunication::Response IPCommunication::sendRequest(const Request& request)
 
     std::vector<char> receivedBytes;
     auto readBytes = read(fdResponse, readResponseBuffer, BUFFER_SIZE);
+    if (readBytes <= 0){ 
+        throw std::runtime_error("sendRequest: Error during reading inter-process communication. read() function error.");
+    }
     receivedBytes.insert(receivedBytes.end(), readResponseBuffer, readResponseBuffer + readBytes);
     while (readBytes == BUFFER_SIZE){
         readBytes = read(fdResponse, readResponseBuffer, BUFFER_SIZE);

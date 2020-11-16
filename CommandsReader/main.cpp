@@ -10,6 +10,7 @@
 
 
 int main(int argc, char* argv[]){
+    std::cout << "child done" << std::endl;
 
     pid_t pid = fork(); //create child process
 
@@ -36,9 +37,10 @@ int main(int argc, char* argv[]){
             std::cout << "ERROR: " << resp.getMessage() << std::endl;
         } else if (resp.getType() == IPCommunication::Response::ResponseType::FINISH){
             std::cout << "Image saved!" << std::endl;
+            break;
         }
     }
     int status;
-    waitpid(pid, &status, 0);
+    // waitpid(pid, &status, 0);
     return 0;
 }

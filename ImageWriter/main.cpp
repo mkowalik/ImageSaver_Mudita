@@ -8,6 +8,17 @@
 
 int main(){
 
+    // pid_t pid = fork(); //create child process
+
+    // if (pid == -1){ //error
+        
+    // } else if (pid == 0){ //child process
+    //     execl("./CommandsReader/CommandsReader.out", "");
+    //     //if returned there is an error
+    // }
+
+    // usleep(200);
+
     IPCommunication icCom(IPCommunication::Role::ImageWriter);
     CommandsFactory commandsFactory;
     BMPImage        img;

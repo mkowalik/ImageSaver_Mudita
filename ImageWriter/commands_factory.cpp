@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cctype>
 #include <algorithm>
+#include <cstdio>
 
 std::unique_ptr<Command> CommandsFactory::getCommandFromString(const std::string& command){
     std::vector<std::string> commandSplitted = splitToWords(command, ' ');
@@ -24,22 +25,22 @@ std::unique_ptr<Command> CommandsFactory::getCommandFromString(const std::string
         if (commandSplitted.size() != 4){
             throw std::logic_error("Wrong arguments number for DRAW_RECTANGLE command.");
         }
-        int x = stringToInt(commandSplitted[1]);
-        int y = stringToInt(commandSplitted[2]);
-        int width = stringToInt(commandSplitted[3]);
-        int height = stringToInt(commandSplitted[4]);
+        int x = stringToInt(commandSplitted[0]);
+        int y = stringToInt(commandSplitted[1]);
+        int width = stringToInt(commandSplitted[2]);
+        int height = stringToInt(commandSplitted[3]);
         return std::unique_ptr<DrawRectangleCommand>(new DrawRectangleCommand(x, y, width, height));
     } else if (commandSplitted[0].compare("DRAW_TRIANGLE") == 0){
         commandSplitted = splitToWords(commandSplitted[1], ',');
         if (commandSplitted.size() != 6){
             throw std::logic_error("Wrong arguments number for DRAW_TRIANGLE command.");
         }
-        int x1 = stringToInt(commandSplitted[1]);
-        int y1 = stringToInt(commandSplitted[2]);
-        int x2 = stringToInt(commandSplitted[3]);
-        int y2 = stringToInt(commandSplitted[4]);
-        int x3 = stringToInt(commandSplitted[5]);
-        int y3 = stringToInt(commandSplitted[6]);
+        int x1 = stringToInt(commandSplitted[0]);
+        int y1 = stringToInt(commandSplitted[1]);
+        int x2 = stringToInt(commandSplitted[2]);
+        int y2 = stringToInt(commandSplitted[3]);
+        int x3 = stringToInt(commandSplitted[4]);
+        int y3 = stringToInt(commandSplitted[5]);
         return std::unique_ptr<DrawTriangleCommand>(new DrawTriangleCommand(x1, y1, x2, y2, x3, y3));
     } else if (commandSplitted[0].compare("RENDER") == 0){
         if (commandSplitted.size() != 2){
@@ -68,7 +69,8 @@ std::vector<std::string> CommandsFactory::splitToWords(const std::string& comman
 
 int CommandsFactory::stringToInt(const std::string& str){
     try {
-        return std::stoi(str);
+        int ret = std::stoi(str);
+        return ret;
     } catch (std::invalid_argument const& e){
         throw std::logic_error("Wrong argument format - wrong format of integer.");
     } catch (std::out_of_range const& e){

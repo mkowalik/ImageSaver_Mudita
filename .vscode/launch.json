@@ -9,6 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "CommandsReader/CommandsReader.out",
+            // "program": "ImageWriter/ImageWriter.out",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -23,7 +24,7 @@
                 },                
                 {"text": "-gdb-set follow-fork-mode child"}
             ],
-            "miDebuggerPath": "/usr/bin/gdb"
+            "miDebuggerPath": "gdb"
         }
     ]
 }
