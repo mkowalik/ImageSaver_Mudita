@@ -1,48 +1,49 @@
-
 #include <string>
 #include <cstdio>
+#include <vector>
 
 class ICCommunication {
 public:
 
-    enum class Role {CommandsReader, CommandsWriter};
+    enum class Role {CommandsReader, ImageWriter};
 private:
-    constexpr static char FIFO_REQUEST_NAME[] = "FIFO_REQUEST_NAME";
-    constexpr static char FIFO_RESPONSE_NAME[] = "FIFO_RESPONSE_NAME";
-    static constexpr std::size_t BUFFER_SIZE = 80;
-
-    char readbuf[80];
     int fdRequest, fdResponse;
     Role role;
-    struct timeval timeoutValue = {
-        .tv_sec = 0,
-        .tv_usec = 200000 //200ms
-    };
 
 public:
 
-/*
     class Request {
         std::string command;
-        void readFromStream(std::istream& str);
-        void writeToStream(std::ostream& str);
+    public:
+        Request(std::string _command);
+        Request(std::vector<char> _buffer);
+        void                readFromBuffer(std::vector<char>);
+        std::vector<char>   writeToBuffer();
+        std::string         getCommand();
     };
-    */
+    
     class Response {
-        bool ack;
-        bool finish;
-        std::string error;
-        // void readFromStream(std::istream& str);
-        // void writeToStream(std::ostream& str);
+
+    public:
+        enum class ResponseType {ACK = 0, ERROR = 1, FINISH = 2};
+    private:
+        ResponseType    type;
+        std::string     message;
+    public:
+        Response(ResponseType _type, std::string _message);
+        Response(std::vector<char> _buffer);
+        void readFromBuffer(std::vector<char>);
+        std::vector<char>   writeToBuffer();
+        ResponseType        getType();
+        std::string         getMessage();
     };
 
-    ICCommunication(Role role/*, std::string FIFO_REQUEST_NAME = "FIFO_REQUEST_NAME"*/);
+    ICCommunication(Role role, std::string FIFO_REQUEST_NAME = "FIFO_REQUEST_NAME", std::string FIFO_RESPONSE_NAME = "FIFO_RESPONSE_NAME");
 
-    Response sendRequest(std::string data);
+    Response    sendRequest(Request request);
 
-    // Request waitForRequest();
-    std::string waitForRequest();
-    void sendResponse(Response resp);
+    Request     waitForRequest();
+    void        sendResponse(Response resp);
 
     ~ICCommunication();
     

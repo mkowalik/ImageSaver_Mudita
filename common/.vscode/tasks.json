@@ -1,0 +1,16 @@
+{
+	"label": "Build All Debug",
+	"type": "shell",
+	"command": "make -f ${workspaceRoot}/Makefile DEBUG=1",
+	"group": {
+		"kind": "build",
+		"isDefault": true
+	},
+	"presentation": {
+		"reveal": "always",
+		"panel": "new"
+	},
+	"problemMatcher": [
+		"$gcc"
+	]
+}

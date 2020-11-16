@@ -8,68 +8,136 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <algorithm>
 
-ICCommunication::ICCommunication(Role _role/*, std::string _FIFO_REQUEST_NAME*/) : role(_role){
+static constexpr std::size_t BUFFER_SIZE = 80;
 
-    mkfifo(FIFO_REQUEST_NAME, 0666);
-    mkfifo(FIFO_RESPONSE_NAME, 0666);
+ICCommunication::Request::Request(std::string _command) : command(_command)
+{
+}
+
+ICCommunication::Request::Request(std::vector<char> _buffer)
+{
+    readFromBuffer(_buffer);
+}
+
+void ICCommunication::Request::readFromBuffer(std::vector<char> _buffer){
+    command = std::string(_buffer.begin(), _buffer.end());
+}
+
+std::vector<char> ICCommunication::Request::writeToBuffer(){
+    return std::vector<char>(command.begin(), command.end());
+}
+
+std::string ICCommunication::Request::getCommand(){
+    return command;
+}
+
+ICCommunication::Response::Response(ICCommunication::Response::ResponseType _type, std::string _message) : 
+type(_type), message(_message) 
+{
+}
+
+ICCommunication::Response::Response(std::vector<char> bytes){
+    readFromBuffer(bytes);
+}
+
+ICCommunication::Response::ResponseType ICCommunication::Response::getType(){
+    return type;
+}
+
+std::string ICCommunication::Response::getMessage(){
+    return message;
+}
+
+void ICCommunication::Response::readFromBuffer(std::vector<char> bytes){
+    type = *(reinterpret_cast<const ResponseType*>(bytes.data()));
+    bytes.erase(bytes.begin(), bytes.begin() + sizeof(ResponseType));
+
+    message = std::string(bytes.begin(), bytes.end());
+}
+
+std::vector<char> ICCommunication::Response::writeToBuffer(){
+    std::vector<char> ret;
+
+    ret.insert(ret.end(), reinterpret_cast<char*>(&type), reinterpret_cast<char*>(&type) + sizeof(ResponseType));
+    ret.insert(ret.end(), message.begin(), message.end());
+    return ret;
+}
+
+ICCommunication::ICCommunication(Role _role, std::string FIFO_REQUEST_NAME, std::string FIFO_RESPONSE_NAME) : role(_role){
+
+    mkfifo(FIFO_REQUEST_NAME.c_str(), 0666);
+    mkfifo(FIFO_RESPONSE_NAME.c_str(), 0666);
 
     if (role == Role::CommandsReader){
-        fdRequest = open(FIFO_REQUEST_NAME, O_RDONLY);
-        fdResponse = open(FIFO_RESPONSE_NAME, O_WRONLY);
+        fdRequest = open(FIFO_REQUEST_NAME.c_str(), O_RDONLY);
+        fdResponse = open(FIFO_RESPONSE_NAME.c_str(), O_WRONLY);
     } else {
-        fdRequest = open(FIFO_REQUEST_NAME, O_WRONLY);
-        fdResponse = open(FIFO_RESPONSE_NAME, O_RDONLY);
+        fdRequest = open(FIFO_REQUEST_NAME.c_str(), O_WRONLY);
+        fdResponse = open(FIFO_RESPONSE_NAME.c_str(), O_RDONLY);
     }
 }
 
-ICCommunication::Response ICCommunication::sendRequest(std::string data){
+ICCommunication::Response ICCommunication::sendRequest(Request request){
 
-    unsigned char buffer[sizeof(std::size_t)];
-    std::size_t length = data.length();
-    ssize_t a = write(fdRequest, reinterpret_cast<char*>(&length), sizeof(std::size_t));
-    ssize_t b = write(fdRequest, data.c_str(), data.length());
+    auto writeBuffer = request.writeToBuffer();
+    auto writtenBytes = write(fdRequest, writeBuffer.data(), writeBuffer.size());
+    if (writtenBytes != static_cast<decltype(writtenBytes)>(writeBuffer.size())){
+        throw std::runtime_error("sendRequest: Error during write in inter-process communication. Wrote bytes number different than expected.");
+    }
 
     fd_set set;
     FD_ZERO(&set);
     FD_SET(fdResponse, &set); /* add our file descriptor to the set */
 
-    Response readResponseBuffer;
-    int rv = select(fdResponse + 1, &set, NULL, NULL, &timeoutValue);
+    struct timeval timeoutValue = {
+        .tv_sec = 0,
+        .tv_usec = 200000 //200ms
+    };
+
+    char readResponseBuffer[BUFFER_SIZE];
+    auto rv = select(fdResponse + 1, &set, NULL, NULL, &timeoutValue);
     if (rv == -1){ //error while executing select 
-        throw std::runtime_error("sendRequest: Error during reading inter-process communication.");
+        throw std::runtime_error("sendRequest: Error during reading inter-process communication. select() function error.");
     } else if (rv == 0){ //timeout while waiting for data fot fdResponse FIFO
         throw std::runtime_error("sendRequest: Error while waiting for the request ACK.");
     } 
 
-    ssize_t read_bytes = read(fdResponse, &readResponseBuffer, sizeof(Response));
-    if (read_bytes != sizeof(Response)){
-        throw std::runtime_error("Error during reading inter-process communication.");
+    std::vector<char> receivedBytes;
+    auto readBytes = read(fdResponse, readResponseBuffer, BUFFER_SIZE);
+    receivedBytes.insert(receivedBytes.end(), readResponseBuffer, readResponseBuffer + readBytes);
+    while (readBytes == BUFFER_SIZE){
+        readBytes = read(fdResponse, readResponseBuffer, BUFFER_SIZE);
+        receivedBytes.insert(receivedBytes.end(), readResponseBuffer, readResponseBuffer + readBytes);
     }
-    return readResponseBuffer;
+    return Response(receivedBytes);
 }
 
-std::string ICCommunication::waitForRequest(){
+ICCommunication::Request ICCommunication::waitForRequest(){
 
-    std::size_t commandLength;
-    static char read_buffer[BUFFER_SIZE];
+    static char readBuffer[BUFFER_SIZE];
     std::string ret;
 
-    ssize_t read_bytes = read(fdRequest, &commandLength, sizeof(std::size_t));
-    if (read_bytes != sizeof(std::size_t)){
-        throw std::runtime_error("waitForRequest: Error during reading inter-process communication.");
+    std::vector<char> receivedBytes;
+    auto readBytes = read(fdRequest, readBuffer, BUFFER_SIZE);
+    receivedBytes.insert(receivedBytes.end(), readBuffer, readBuffer + readBytes);
+    while (readBytes == BUFFER_SIZE){
+        readBytes = read(fdRequest, readBuffer, BUFFER_SIZE);
+        receivedBytes.insert(receivedBytes.end(), readBuffer, readBuffer + readBytes);
     }
-    while (commandLength > 0){
-        read_bytes = read(fdRequest, read_buffer, std::min(BUFFER_SIZE, commandLength));
-        ret.append(read_buffer, read_bytes);
-        commandLength -= read_bytes;
+    return Request(receivedBytes);
+}
+
+void ICCommunication::sendResponse(Response resp){
+
+    std::vector<char> respBytes = resp.writeToBuffer();
+    auto writtenBytes = write(fdResponse, respBytes.data(), respBytes.size());
+    if (writtenBytes != static_cast<decltype(writtenBytes)>(respBytes.size())){
+        throw std::runtime_error("sendResponse: Error during write in inter-process communication. Wrote bytes number different than expected.");
     }
-    return ret;
 }
 
 ICCommunication::~ICCommunication(){
     close(fdRequest);
-     if (role == Role::CommandsReader) {
-        std::cout << "close" << std::endl;
-    }
 }
