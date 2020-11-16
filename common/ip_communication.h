@@ -21,7 +21,7 @@ public:
     class Response {
 
     public:
-        enum class ResponseType {ACK = 0, ERROR = 1, FINISH = 2};
+        enum class ResponseType {ACK = 0, ACK_FINISH = 1, ERROR = 2};
     private:
         ResponseType    type;
         std::string     message;
@@ -35,6 +35,7 @@ public:
     };
 
     virtual Response    sendRequest(const Request& request) = 0;
+    
     virtual Request     waitForRequest() = 0;
     virtual void        sendResponse(const Response& resp) = 0;
 };

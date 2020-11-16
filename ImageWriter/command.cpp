@@ -53,7 +53,7 @@ bool DrawTriangleCommand::executeCommand(Image& img)
     return false;
 }
 
-RenderNameCommand::RenderNameCommand(std::string&& _name) : name(_name)
+RenderNameCommand::RenderNameCommand(const std::string& _name) : name(_name)
 {
 }
 

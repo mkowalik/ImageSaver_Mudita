@@ -1,1 +1,1 @@
-./CommandsReader/CommandsReader.out $1
+./CommandsReader/commands_reader.out $1

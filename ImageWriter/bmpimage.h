@@ -1,14 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <tuple>
-
 #include "image.h"
+
 #define cimg_display 0
 #include "../lib/CImg-2.9.3_pre101320/CImg.h"
 
-//namespace cimg = cimg_library;
-
+#include <vector>
+#include <tuple>
 
 using namespace cimg_library;
 

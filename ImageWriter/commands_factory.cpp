@@ -1,50 +1,51 @@
 #include "commands_factory.h"
-#include <iostream>
 #include <cctype>
 #include <algorithm>
 #include <cstdio>
 
 std::unique_ptr<Command> CommandsFactory::getCommandFromString(const std::string& command){
     std::vector<std::string> commandSplitted = splitToWords(command, ' ');
-    std::cout << "splitted" << std::endl;
+    if (commandSplitted.empty()){
+        throw std::logic_error("Empty command.");
+    }
     if (commandSplitted[0].compare("SET_WIDTH") == 0){
         if (commandSplitted.size() != 2){
-            throw std::logic_error("Wrong arguments number for SET_WIDTH command.");
+            throw std::logic_error("Wrong arguments number.");
         }
-        int width = stringToInt(commandSplitted[1]);
+        unsigned long width = stringToUInt(commandSplitted[1]);
         return std::unique_ptr<SetWidthCommand>(new SetWidthCommand(width));
     } else if (commandSplitted[0].compare("SET_HEIGHT") == 0){
         if (commandSplitted.size() != 2){
-            throw std::logic_error("Wrong arguments number for SET_HEIGHT command.");
+            throw std::logic_error("Wrong arguments number.");
         }
-        int width = stringToInt(commandSplitted[1]);
+        unsigned long width = stringToUInt(commandSplitted[1]);
         return std::unique_ptr<SetHeightCommand>(new SetHeightCommand(width));
     } else if (commandSplitted[0].compare("DRAW_RECTANGLE") == 0){
 
         commandSplitted = splitToWords(commandSplitted[1], ',');
         if (commandSplitted.size() != 4){
-            throw std::logic_error("Wrong arguments number for DRAW_RECTANGLE command.");
+            throw std::logic_error("Wrong arguments number.");
         }
-        int x = stringToInt(commandSplitted[0]);
-        int y = stringToInt(commandSplitted[1]);
-        int width = stringToInt(commandSplitted[2]);
-        int height = stringToInt(commandSplitted[3]);
+        unsigned long x = stringToUInt(commandSplitted[0]);
+        unsigned long y = stringToUInt(commandSplitted[1]);
+        unsigned long width = stringToUInt(commandSplitted[2]);
+        unsigned long height = stringToUInt(commandSplitted[3]);
         return std::unique_ptr<DrawRectangleCommand>(new DrawRectangleCommand(x, y, width, height));
     } else if (commandSplitted[0].compare("DRAW_TRIANGLE") == 0){
         commandSplitted = splitToWords(commandSplitted[1], ',');
         if (commandSplitted.size() != 6){
-            throw std::logic_error("Wrong arguments number for DRAW_TRIANGLE command.");
+            throw std::logic_error("Wrong arguments number.");
         }
-        int x1 = stringToInt(commandSplitted[0]);
-        int y1 = stringToInt(commandSplitted[1]);
-        int x2 = stringToInt(commandSplitted[2]);
-        int y2 = stringToInt(commandSplitted[3]);
-        int x3 = stringToInt(commandSplitted[4]);
-        int y3 = stringToInt(commandSplitted[5]);
+        unsigned long x1 = stringToUInt(commandSplitted[0]);
+        unsigned long y1 = stringToUInt(commandSplitted[1]);
+        unsigned long x2 = stringToUInt(commandSplitted[2]);
+        unsigned long y2 = stringToUInt(commandSplitted[3]);
+        unsigned long x3 = stringToUInt(commandSplitted[4]);
+        unsigned long y3 = stringToUInt(commandSplitted[5]);
         return std::unique_ptr<DrawTriangleCommand>(new DrawTriangleCommand(x1, y1, x2, y2, x3, y3));
     } else if (commandSplitted[0].compare("RENDER") == 0){
         if (commandSplitted.size() != 2){
-            throw std::logic_error("Wrong arguments number for RENDER command.");
+            throw std::logic_error("Wrong arguments number.");
         }
         return std::unique_ptr<RenderNameCommand>(new RenderNameCommand(std::move(commandSplitted[1])));
     } else {
@@ -67,15 +68,19 @@ std::vector<std::string> CommandsFactory::splitToWords(const std::string& comman
     return ret;
 }
 
-int CommandsFactory::stringToInt(const std::string& str){
+unsigned int CommandsFactory::stringToUInt(const std::string& str){
+    int ret = 0;
     try {
-        int ret = std::stoi(str);
-        return ret;
+        ret = std::stoi(str);
     } catch (std::invalid_argument const& e){
         throw std::logic_error("Wrong argument format - wrong format of integer.");
     } catch (std::out_of_range const& e){
         throw std::logic_error("Wrong argument format - integer out_of_range.");
     }
+    if (ret < 0){
+        throw std::logic_error("Wrong argument format - integer out_of_range - value must be greater or equal to 0.");
+    }
+    return static_cast<unsigned int>(ret);
 }
 
 void CommandsFactory::trimWhitespaces(std::string& str){   

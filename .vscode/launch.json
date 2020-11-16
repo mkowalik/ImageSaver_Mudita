@@ -8,7 +8,7 @@
             "name": "make - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "CommandsReader/CommandsReader.out",
+            "program": "CommandsReader/commands_reader.out",
             // "program": "ImageWriter/ImageWriter.out",
             "args": [],
             "stopAtEntry": false,

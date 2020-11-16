@@ -1,10 +1,11 @@
 #include "ip_communication_fifo.h"
 
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
+
 #include <stdexcept>
-#include <iostream>
 
 static constexpr std::size_t BUFFER_SIZE = 80;
 
@@ -16,27 +17,17 @@ IPCommunicationFIFO::IPCommunicationFIFO(IPCommunication::Role _role,
 role(_role), fifoRequestName(DIR_PATH + FIFO_REQUEST_NAME), fifoResponseName(DIR_PATH + FIFO_RESPONSE_NAME)
 {
     mkfifo(fifoRequestName.c_str(), 0666);
-
-    if (role == Role::CommandsReader){
-        std::cout << "opne 1 Command before \r\n";
-        fdRequest = open(fifoRequestName.c_str(), O_WRONLY);
-    } else {
-        std::cout << "opne 1 Image before \r\n";
-        fdRequest = open(fifoRequestName.c_str(), O_RDONLY);
-    }
     mkfifo(fifoResponseName.c_str(), 0666);
     if (role == Role::CommandsReader){
-        std::cout << "opne 1 Command done \r\n";
+        fdRequest = open(fifoRequestName.c_str(), O_WRONLY);
         fdResponse = open(fifoResponseName.c_str(), O_RDONLY);
     } else {
-        std::cout << "opne 1 Image done \r\n";
+        fdRequest = open(fifoRequestName.c_str(), O_RDONLY);
         fdResponse = open(fifoResponseName.c_str(), O_WRONLY);
     }
     if (fdRequest <= 0 || fdResponse <= 0){
         throw std::runtime_error("Could not create system FIFO.");
     }
-
-    std::cout << fdRequest << " " << fdResponse << std::endl;
 }
 
 IPCommunication::Response IPCommunicationFIFO::sendRequest(const Request& request)
@@ -52,7 +43,7 @@ IPCommunication::Response IPCommunicationFIFO::sendRequest(const Request& reques
     FD_SET(fdResponse, &set); /* add our file descriptor to the set */
 
     struct timeval timeoutValue = {
-        .tv_sec = 5,
+        .tv_sec = 0,
         .tv_usec = 500000 //500ms
     };
 

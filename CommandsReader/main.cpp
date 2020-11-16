@@ -6,41 +6,65 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "../common/ip_communication.h"
+#include "../common/ip_communication_fifo.h"
+#include "log_saver.h"
+#include "commands_reader.h"
 
+constexpr char logFileName[] = "log.txt";
+constexpr char ImageWriterPath[] = "./ImageWriter/image_writer.out";
+
+pid_t imageWriterPID;
+
+std::unique_ptr<CommandsReader> getCommandsReader(int argc, char* argv[]){
+    if (argc > 1){
+        return std::unique_ptr<CommandsReader>(new FileCommandsReader("test.in"));
+    } else {
+        return std::unique_ptr<CommandsReader>(new CINCommandsReader());
+    }
+}
+
+std::unique_ptr<LogSaver> getLogSaver(){
+    return std::unique_ptr<LogSaver>(new FileLogSaver(logFileName));
+}
+
+std::unique_ptr<IPCommunication> getIPCommunication(){
+    return std::unique_ptr<IPCommunication>(new IPCommunicationFIFO(IPCommunication::Role::CommandsReader));
+}
+
+void runImageWriterProc(){
+    imageWriterPID = fork(); //< create child process
+    if (imageWriterPID == -1){ //< error
+        throw std::runtime_error("Error while trying to fork.");
+    } else if (imageWriterPID == 0){ //< child process
+        execl(ImageWriterPath, "");
+        throw std::runtime_error("Error while trying to run ImageWriter.");
+    }
+    //< return to parent (CommandsReader) process 
+}
+
+void waitForImageWriter(){
+    int status;
+    waitpid(imageWriterPID, &status, 0);
+}
 
 int main(int argc, char* argv[]){
-    std::cout << "child done" << std::endl;
 
-    pid_t pid = fork(); //create child process
+    runImageWriterProc();
 
-    if (pid == -1){ //error
-        
-    } else if (pid == 0){ //child process
-        execl("./ImageWriter/ImageWriter.out", "");
-        //if returned there is an error
-    }
-    //< parent process below >//
-    std::ifstream fil;
-    if (argc > 1){
-        fil = std::ifstream(argv[1]);
-    }
-    std::istream& str = (argc > 1) ? fil : std::cin;
+    auto ipCom = getIPCommunication();
+    auto comReader = getCommandsReader(argc, argv);
+    auto logSaver = getLogSaver();
 
-    IPCommunication icCom(IPCommunication::Role::CommandsReader);
-
-    std::string command;
     while (true){
-        std::getline(str, command);
-        IPCommunication::Response resp = icCom.sendRequest(IPCommunication::Request(command));
+        IPCommunication::Request req = comReader->readCommand();
+        IPCommunication::Response resp = ipCom->sendRequest(req);
         if (resp.getType() == IPCommunication::Response::ResponseType::ERROR){
-            std::cout << "ERROR: " << resp.getMessage() << std::endl;
-        } else if (resp.getType() == IPCommunication::Response::ResponseType::FINISH){
-            std::cout << "Image saved!" << std::endl;
+            logSaver->log(resp.getMessage(), LogSaver::LogType::ERROR);
+        } else if (resp.getType() == IPCommunication::Response::ResponseType::ACK_FINISH){
             break;
         }
     }
-    int status;
-    // waitpid(pid, &status, 0);
+
+    waitForImageWriter();
     return 0;
 }

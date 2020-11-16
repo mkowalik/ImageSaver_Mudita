@@ -1,9 +1,8 @@
 #pragma once
 
-#include <memory>
-#include <ostream>
-
 #include "image.h"
+
+#include <string>
 
 class Command {
 public:
@@ -55,6 +54,6 @@ public:
 class RenderNameCommand : public Command {
     std::string name;
 public:
-    RenderNameCommand(std::string&& name);
+    RenderNameCommand(const std::string& name);
     virtual bool executeCommand(Image& img) override;
 };

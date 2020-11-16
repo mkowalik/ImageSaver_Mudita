@@ -15,6 +15,7 @@ public:
                         const std::string& DIR_PATH = "/tmp/");
 
     virtual Response    sendRequest(const Request& request) override;
+    
     virtual Request     waitForRequest() override;
     virtual void        sendResponse(const Response& resp) override;
 
