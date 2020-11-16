@@ -9,7 +9,7 @@ int main(){
 
     ICCommunication icCom(ICCommunication::Role::ImageWriter);
     CommandsFactory commandsFactory;
-    PNGImage img;
+    BMPImage img;
 
     while (true){
         ICCommunication::Request req = icCom.waitForRequest();
