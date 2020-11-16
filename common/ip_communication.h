@@ -28,29 +28,13 @@ public:
     public:
         Response(const ResponseType& _type, const std::string& _message);
         Response(const std::vector<char>& _buffer);
-        void readFromBuffer(const std::vector<char>& buffer);
+        void                readFromBuffer(const std::vector<char>& buffer);
         std::vector<char>   writeToBuffer() const;
         ResponseType        getType() const ;
         std::string         getMessage() const;
     };
 
-private:
-    int fdRequest, fdResponse;
-    Role role;
-    std::string fifoRequestName, fifoResponseName;
-
-public:
-
-    IPCommunication(Role role, 
-                    const std::string& FIFO_REQUEST_NAME = "FIFO_REQ", 
-                    const std::string& FIFO_RESPONSE_NAME = "FIFO_RESP", 
-                    const std::string& DIR_PATH = "/tmp/");
-
-    Response    sendRequest(const Request& request);
-
-    Request     waitForRequest();
-    void        sendResponse(const Response& resp);
-
-    ~IPCommunication();
-    
+    virtual Response    sendRequest(const Request& request) = 0;
+    virtual Request     waitForRequest() = 0;
+    virtual void        sendResponse(const Response& resp) = 0;
 };
