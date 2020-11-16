@@ -1,14 +1,11 @@
 #include "icCommunication.h"
-#include <stdio.h>
+
+#include <cstdio>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include <iostream>
-#include <chrono>
-#include <thread>
-#include <algorithm>
+#include <stdexcept>
 
 static constexpr std::size_t BUFFER_SIZE = 80;
 
@@ -38,26 +35,31 @@ type(_type), message(_message)
 {
 }
 
-ICCommunication::Response::Response(std::vector<char> bytes){
+ICCommunication::Response::Response(std::vector<char> bytes)
+{
     readFromBuffer(bytes);
 }
 
-ICCommunication::Response::ResponseType ICCommunication::Response::getType(){
+ICCommunication::Response::ResponseType ICCommunication::Response::getType()
+{
     return type;
 }
 
-std::string ICCommunication::Response::getMessage(){
+std::string ICCommunication::Response::getMessage()
+{
     return message;
 }
 
-void ICCommunication::Response::readFromBuffer(std::vector<char> bytes){
+void ICCommunication::Response::readFromBuffer(std::vector<char> bytes)
+{
     type = *(reinterpret_cast<const ResponseType*>(bytes.data()));
     bytes.erase(bytes.begin(), bytes.begin() + sizeof(ResponseType));
 
     message = std::string(bytes.begin(), bytes.end());
 }
 
-std::vector<char> ICCommunication::Response::writeToBuffer(){
+std::vector<char> ICCommunication::Response::writeToBuffer()
+{
     std::vector<char> ret;
 
     ret.insert(ret.end(), reinterpret_cast<char*>(&type), reinterpret_cast<char*>(&type) + sizeof(ResponseType));
@@ -65,7 +67,8 @@ std::vector<char> ICCommunication::Response::writeToBuffer(){
     return ret;
 }
 
-ICCommunication::ICCommunication(Role _role, std::string FIFO_REQUEST_NAME, std::string FIFO_RESPONSE_NAME) : role(_role){
+ICCommunication::ICCommunication(Role _role, std::string FIFO_REQUEST_NAME, std::string FIFO_RESPONSE_NAME) : role(_role), fifoRequestName(FIFO_REQUEST_NAME), fifoResponseName(FIFO_RESPONSE_NAME) 
+{
 
     mkfifo(FIFO_REQUEST_NAME.c_str(), 0666);
     mkfifo(FIFO_RESPONSE_NAME.c_str(), 0666);
@@ -79,7 +82,8 @@ ICCommunication::ICCommunication(Role _role, std::string FIFO_REQUEST_NAME, std:
     }
 }
 
-ICCommunication::Response ICCommunication::sendRequest(Request request){
+ICCommunication::Response ICCommunication::sendRequest(Request request)
+{
 
     auto writeBuffer = request.writeToBuffer();
     auto writtenBytes = write(fdRequest, writeBuffer.data(), writeBuffer.size());
@@ -114,8 +118,8 @@ ICCommunication::Response ICCommunication::sendRequest(Request request){
     return Response(receivedBytes);
 }
 
-ICCommunication::Request ICCommunication::waitForRequest(){
-
+ICCommunication::Request ICCommunication::waitForRequest()
+{
     static char readBuffer[BUFFER_SIZE];
     std::string ret;
 
@@ -129,8 +133,8 @@ ICCommunication::Request ICCommunication::waitForRequest(){
     return Request(receivedBytes);
 }
 
-void ICCommunication::sendResponse(Response resp){
-
+void ICCommunication::sendResponse(Response resp)
+{
     std::vector<char> respBytes = resp.writeToBuffer();
     auto writtenBytes = write(fdResponse, respBytes.data(), respBytes.size());
     if (writtenBytes != static_cast<decltype(writtenBytes)>(respBytes.size())){
@@ -138,6 +142,10 @@ void ICCommunication::sendResponse(Response resp){
     }
 }
 
-ICCommunication::~ICCommunication(){
+ICCommunication::~ICCommunication()
+{
     close(fdRequest);
+    close(fdResponse);
+    remove(fifoRequestName.c_str());
+    remove(fifoResponseName.c_str());
 }

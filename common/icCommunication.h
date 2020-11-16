@@ -1,5 +1,4 @@
 #include <string>
-#include <cstdio>
 #include <vector>
 
 class ICCommunication {
@@ -9,6 +8,7 @@ public:
 private:
     int fdRequest, fdResponse;
     Role role;
+    std::string fifoRequestName, fifoResponseName;
 
 public:
 
